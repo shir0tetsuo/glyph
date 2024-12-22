@@ -13,6 +13,9 @@ import uuid
 # https://terraforms.oolong.lol/terraform
 # https://unicode-explorer.com/b/13000
 
+if not (os.path.exists('output')):
+    os.makedirs('output/')
+
 class SavedMaps:
 
     def __init__(self):
@@ -262,13 +265,14 @@ if (color_mode == color_modes[2]):
 
 show_cmap_preview(selected_cmap)
 
-
+# TAB DEFINITIONS
 tab1, tab2, tab3, tab4 = st.sidebar.tabs(['Glyphs & Font', 'Heightmap', 'Seed', 'Saving'])
 
 show_info = tab1.toggle('Show Info', False)
-
 manual_glyphs = tab1.toggle('Manual Glyphs', False)
 
+# NOTE This is the Ubuntu Linux default & not all of these were installed by default
+# so moving them over with `sudo cp` is what I did.
 fontdir = '/usr/share/fonts/truetype/noto/'
 SET_hieroglyphs = fontdir+'NotoSansEgyptianHieroglyphs-Regular.ttf'
 SET_LinearA = fontdir+'NotoSansLinearA-Regular.ttf'
