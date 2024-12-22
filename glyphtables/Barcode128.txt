@@ -1,0 +1,2 @@
+LibreBarcode128-Regular.ttf
+abcdefghijklmnopqrstuvwxyz123456789

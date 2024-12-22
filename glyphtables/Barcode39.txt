@@ -1,0 +1,2 @@
+LibreBarcode39-Regular.ttf
+abcdefghijklmnopqrstuvwxyz123456789

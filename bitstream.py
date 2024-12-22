@@ -8,6 +8,13 @@ import noise
 import os
 import uuid
 
+import Components
+import Components.loaders
+
+SavedMaps = Components.loaders.SavedMaps
+SavedColors = Components.loaders.SavedColors
+SavedGlyphs = Components.loaders.SavedGlyphs
+
 # inspiration & compatible bits
 # https://terrafans.xyz/antenna/
 # https://terraforms.oolong.lol/terraform
@@ -16,61 +23,20 @@ import uuid
 if not (os.path.exists('output')):
     os.makedirs('output/')
 
-class SavedMaps:
-
-    def __init__(self):
-
-        path = os.getcwd()
-
-        self.path = os.path.join(path, 'heightmaps')
-
-        self.items = [item for item in next(os.walk(self.path))[2]]
-
-        pass
-    
-    def read_file_as_string(self, file_path):
-        try:
-            with open(file_path, 'r') as file:
-                return file.read()
-        except FileNotFoundError:
-            return f"Error: The file at {file_path} was not found."
-        except Exception as e:
-            return f"Error: {e}"
-    
-    @property
-    def maps(self):
-        return {item:self.read_file_as_string(os.path.join(self.path, item)) for item in self.items}
-
 if "saved_maps" not in st.session_state:
     st.session_state.saved_maps = SavedMaps().maps
 
 saved_maps = st.session_state.saved_maps
 
-class SavedColors:
-
-    def __init__(self):
-
-        path = os.getcwd()
-
-        self.path = os.path.join(path, 'colors')
-
-        self.items = [item for item in next(os.walk(self.path))[2]]
-
-        pass
-
-    def read_file_as_list(self, file_path):
-        '''Returns list of lines from file (UTF-8).'''
-        with open(file_path, 'r', encoding='UTF-8') as file:
-            return [line.strip() for line in file]
-    
-    @property
-    def maps(self):
-        return {item:self.read_file_as_list(os.path.join(self.path, item)) for item in self.items}
-
 if "saved_colors" not in st.session_state:
     st.session_state.saved_colors = SavedColors().maps
 
 saved_colors = st.session_state.saved_colors
+
+if "saved_glyphs" not in st.session_state:
+    st.session_state.saved_glyphs = SavedGlyphs().maps
+
+saved_glyphs = st.session_state.saved_glyphs
 
 # Display the heightmap in a text area for editing
 def edit_heightmap(heightmap):
@@ -271,117 +237,20 @@ tab1, tab2, tab3, tab4 = st.sidebar.tabs(['Glyphs & Font', 'Heightmap', 'Seed', 
 show_info = tab1.toggle('Show Info', False)
 manual_glyphs = tab1.toggle('Manual Glyphs', False)
 
-# NOTE This is the Ubuntu Linux default & not all of these were installed by default
-# so moving them over with `sudo cp` is what I did.
-fontdir = '/usr/share/fonts/truetype/noto/'
-SET_hieroglyphs = fontdir+'NotoSansEgyptianHieroglyphs-Regular.ttf'
-SET_LinearA = fontdir+'NotoSansLinearA-Regular.ttf'
-SET_Kharoshthi = fontdir+'NotoSansKharoshthi-Regular.ttf'
-SET_Osmanya = fontdir+'NotoSansOsmanya-Regular.ttf'
-SET_Runic = fontdir+'NotoSansRunic-Regular.ttf'
-SET_Brahmi = fontdir+'NotoSansBrahmi-Regular.ttf'
-SET_Coptic = fontdir+'NotoSansCoptic-Regular.ttf'
-SET_Georgian = fontdir+'NotoSansGeorgian-Regular.ttf'
-SET_Glagolitic = fontdir+'NotoSansGlagolitic-Regular.ttf'
-SET_Lepcha = fontdir+'NotoSansLepcha-Regular.ttf'
-SET_Lycian = fontdir+'NotoSansLycian-Regular.ttf'
-SET_PhagsPa = fontdir+'NotoSansPhagsPa-Regular.ttf'
-SET_Tifinagh = fontdir+'NotoSansTifinagh-Regular.ttf'
-SET_Yi = fontdir+'NotoSansYi-Regular.ttf'
-SET_Japanese = fontdir+'NotoSansJP-Regular.ttf'
-SET_Korean = fontdir+'NotoSansKR-Regular.ttf'
-SET_barcode39 = fontdir+'LibreBarcode39-Regular.ttf'
-SET_barcode128 = fontdir+'LibreBarcode128-Regular.ttf'
-SET_Yarndings = fontdir+'Yarndings12-Regular.ttf'
-SET_RegEmoji = fontdir+'NotoEmoji-Regular.ttf'
-SET_Myanmar = fontdir+'NotoSansMyanmar-Regular.ttf'
 
 if manual_glyphs:
     glyph_raw = tab1.text_input('Glyphs', '𓋴𓇋𓆗𓅱𓆉𓎡𓍯𓃥𓃣𓈖𓇋𓃢𓃦')
     glyphs_select = "Manual"
     glyphs = [i for i in glyph_raw]
 else:
-    glyph_table = {
-        'Egyptian1': ['𓂧𓆑𓏏𓎛𓋴𓇋𓌳𓃀𓆗𓆀𓅱𓆠𓆈𓆉𓎡𓍯𓃥𓃣𓈖𓇋𓃢𓃦', SET_hieroglyphs],
-        'Egyptian2': ['𓆝𓍝𓇋𓃣𓍚𓏢𓐤𓌬𓆣𓆥𓆗𓆏𓆋𓄇𓃕𓆉𓅱', SET_hieroglyphs],
-        'Egyptian3': ['𓆗𓃾𓄁𓄂𓄃𓄝𓅜𓆈𓆤', SET_hieroglyphs],
-        'Egyptian4': ['𓋾𓋴𓍝𓋹𓋿𓌀𓋻𓋘𓌏𓌪𓍃𓎸𓎶𓏋𓏢', SET_hieroglyphs],
-        'Jackals1': ['𓃢𓃦𓃥𓃣𓁢𓃤𓃧𓃨', SET_hieroglyphs],
-        'Jackals2': ['𓃢𓃦𓃥𓃣𓇌', SET_hieroglyphs],
-        'Reptiles': ['𓆈𓆉𓆊𓆌𓆏𓆇𓆑𓆓𓆗𓆙𓆚𓆘', SET_hieroglyphs],
-        'Egyptian5': ['𓁴𓁢𓊽𓎸𓂀𓃠𓃬𓃭𓃮𓄂𓆞𓉈𓄇', SET_hieroglyphs],
-        'Egyptian6': ['𓀫𓁀𓁛𓃗𓃯𓃰𓅐𓆈𓆏𓆗𓆝𓊝𓍝𓆧', SET_hieroglyphs],
-        'EmojiStars': ['💫⭐🌟✨', SET_RegEmoji],
-        'EmojiHearts': ['💘💕💝🤍💗🧡❤💜💛🖤💞💓🤎💙💚', SET_RegEmoji],
-        'EmojiEyeskull': ['👁︎🦴🩸💔☠︎💀🪦', SET_RegEmoji],
-        'EmojiWeWantYou': ['🫵💪👍👁︎🖖👋🫱🙏🫴', SET_RegEmoji],
-        'EmojiNature1': ['🥀🌺🌱🍄💮🍀☀︎🍃🪵🍁', SET_RegEmoji],
-        'EmojiMoon': ['🌑🌒🌓🌔🌕⭐🌖🌗✨🌘',SET_RegEmoji],
-        'EmojiKeys': ['🔒🗝︎🔑🟪', SET_RegEmoji],
-        'EmojiSea': ['🦐🦞🛥︎🪝🪸🦀🛟🛶🦑🦩🐟⛵🐙🦈🐠🐋', SET_RegEmoji],
-        'EmojiExcl': ['❕‼︎❗🔶⁉︎❔❓', SET_RegEmoji],
-        'EmojiBetterWorld': ['♻︎🚯🌐⚕︎☮︎♥︎🔆🚭☯︎💲🎼📴', SET_RegEmoji],
-        'EmojiScience': ['🧲📡🗜︎🛰︎🔬⛏︎⚗︎💎🕶︎📖📗📏', SET_RegEmoji],
-        'EmojiUnbox': ['📦📰✉︎🎋💽🎫📖⚖︎🧾', SET_RegEmoji],
-        'EmojiSpiritual': ['🌨︎⭐🔥🍂✨🌕⚕︎🎋🍄🗡︎🪄🔮🪦🪬📿🧿🐾', SET_RegEmoji],
-        'Fish': ['𓆛𓆜𓆝𓆞𓆟𓆡𓆠𓅻𓈖𓆢', SET_hieroglyphs],
-        'Birds': ['𓄿𓅀𓅱𓅷𓅾𓅟𓅮𓅙𓅰𓅚𓅞𓅪𓅜𓅛𓅘𓅓𓅔𓅃𓅂', SET_hieroglyphs],
-        'Deities': ['𓁛𓁠𓁦𓁥𓁮𓁭𓁤𓁩𓁳𓁴𓁧𓁨𓁱𓁣𓁚𓁫𓁟𓁢𓁵𓁜', SET_hieroglyphs],
-        'Yd1': ['oapsnteylqr', SET_Yarndings],
-        'Barcode39': ['abcdefghijklmnopqrstuvwxyz123456789', SET_barcode39],
-        'Barcode128': ['abcdefghijklmnopqrstuvwxyz123456789', SET_barcode128],
-        'Dots': ['𓃉𓃊𓃋𓃌𓃍𓃎𓃏𓃐𓃑', SET_hieroglyphs],
-        'LinearA1': ['𐘁𐘂𐘃𐚬𐚝𐛽𐜥𐚟𐛭𐛰𐛉𐛎𐜎𐝡𐘄𐛊𐛬𐛼𐝦𐛸𐛿𐚣𐛻𐘅𐘇𐝠𐘈𐘉𐝧𐘋𐛪𐚷𐘌𐚞𐛍𐙈𐚽𐘖𐛋𐘍𐘎𐘏𐘑𐘕𐘓𐘝𐘮𐚲𐙳𐙍𐙽𐙻𐘔𐘐𐚓𐙇', SET_LinearA],
-        'LinearA2': ['𐚟𐚳𐛞𐘝𐛒𐘋𐚅𐙈𐝧𐛃𐙟𐙳', SET_LinearA],
-        'LinearA3': ['𐚁𐘋𐛊𐘑𐚷𐘠𐛞𐘥𐚚𐛤𐙽𐙰𐛂𐙲𐙶𐚌', SET_LinearA],
-        'K1': ['𐨲𐨒𐨱𐨜𐨖𐨳𐨫𐨕𐨀𐨓𐨥', SET_Kharoshthi],
-        'Osmanyan1': ['𐒁𐒂𐒌𐒍𐒋𐒄𐒎𐒝𐒐𐒙𐒑𐒒𐒊𐒕𐒈𐒓𐒉𐒛𐒗𐒏𐒅',SET_Osmanya],
-        'Runic1': ['ᚠᚤᚧᚿᚡᛥᛯᛟᚨᛰᚥᛜᛩᚩᛮᛵᛢᚭᛳᛄᛎᛞᛤᛖᛉᛸᚾᛒᛏᚮᚺᚦᛗᚻᛃᛈᛅᛴᛇᚯᚰᚱᛱᚼᚴᚵᚷᚢᚹᚶᚬᚲᚳ',SET_Runic],
-        'Brahmi1': ['𑀀𑀁𑀂𑀃𑀄𑀅𑀆𑀇𑀈𑀉𑀊𑀋𑀌𑀍𑀎𑀏𑀐𑀑𑀒𑀓𑀔𑀕𑀖𑀗𑀘𑀙𑀚𑀛𑀜𑀝𑀞𑀟𑀠𑀡𑀢𑀣𑀤𑀥𑀦𑀧𑀨𑀩𑀪𑀫𑀬𑀭𑀮𑀯𑀰𑀱𑀲𑀳𑀴𑀵𑀶𑀷𑀸𑀹𑀺𑀻𑀼𑀽𑀾𑀿𑁀𑁁𑁂𑁃𑁄𑁅𑁆𑁇𑁈', SET_Brahmi],
-        'Coptic1': ['ⲀⲁⲂⲃⲄⲅⲆⲇⲈⲉⲊⲋⲌⲍⲎⲏⲐⲑⲒⲓⲔⲕⲖⲗⲘⲙⲚⲛⲜⲝⲞⲟⲠⲡⲢⲣⲤⲥⲦⲧⲨⲩⲪⲫⲬⲭⲮⲯⲰⲱⲲⲳⲴⲵⲶⲷⲸⲹⲺⲻⲼⲽⲾⲿⳀⳁⳂⳃⳄⳅⳆⳇⳈⳉⳊⳋⳌⳍⳎⳏⳐⳑⳒⳓⳔⳕⳖⳗⳘⳙⳚⳛⳜⳝⳞⳟⳠⳡⳢⳣⳤ⳥⳦⳧⳨⳩⳪', SET_Coptic],
-        'Coptic2': ['ⲺⲻⲼⲽⲾⲿⳀⳁⳂⳃⳄⳅⳆⳇⳈⳉⳊⳋⳌⳍⳎⳏⳐⳑⳒⳓⳔⳕⳖⳗⳘⳙⳚⳛⳜⳝⳞⳟⳠⳡⳢⳣⳤ⳥⳦⳧⳨⳩⳪', SET_Coptic],
-        'Coptic3': ['ⲀⲁⲂⲃⲄⲅⲆⲇⲈⲉⲊⲋⲌⲍⲎⲏⲐⲑⲒⲓⲔⲕⲖⲗⲘⲙⲚⲛⲜⲝⲞⲟⲠⲡⲢⲣⲤⲥⲦⲧⲨⲩⲪⲫⲬⲭⲮⲯⲰⲱⲲⲳⲴⲵⲶⲷⲸⲹ', SET_Coptic],
-        'Georgian1': ['ႠႡႢႣႤႥႦႧႨႩႪႫႬႭႮႯႰႱႲႳႴႵႶႷႸႹႺႻႼႽႾႿჀჁჂჃჄჅაბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰჱჲჳჴჵჶჷჸჹჺ჻ჼ', SET_Georgian],
-        'Glagolitic1': ['ⰀⰁⰂⰃⰄⰅⰆⰇⰈⰉⰊⰋⰌⰍⰎⰏⰐⰑⰒⰓⰔⰕⰖⰗⰘⰙⰚⰛⰜⰝⰞⰟⰠⰡⰢⰣⰤⰥⰦⰧⰨⰩⰪⰫⰬⰭⰮⰰⰱⰲⰳⰴⰵⰶⰷⰸⰹⰺⰻⰼⰽⰾⰿⱀⱁⱂⱃⱄⱅⱆⱇⱈⱉⱊⱋⱌⱍⱎⱏ', SET_Glagolitic],
-        'Glagolitic2': ['ⰀⰁⰂⰃⰄⰅⰆⰇⰈⰉⰊⰋⰌⰍⰎⰏⰐⰑⰒⰓⰔⰕⰖⰗⰘⰙⰚⰛⰜⰝⰞⰟⰠⰡⰢⰣⰤⰥⰦⰧⰨⰩⰪⰫⰬⰭⰮ', SET_Glagolitic],
-        'Glagolitic3': ['ⰰⰱⰲⰳⰴⰵⰶⰷⰸⰹⰺⰻⰼⰽⰾⰿⱀⱁⱂⱃⱄⱅⱆⱇⱈⱉⱊⱋⱌⱍⱎⱏ', SET_Glagolitic],
-        'Lepcha1': ['ᰀᰁᰂᰃᰄᰅᰆᰇᰈᰉᰊᰋᰌᰍᰎᰏᰐᰑᰒᰓᰔᰕᰖᰗᰘᰙᰚᰛᰜᰝᰞᰟᰠᰡᰢ', SET_Lepcha],
-        'Lepcha2': ['᰻᰼᰽᰾᰿᱀᱁᱂᱃᱄᱅᱆᱇᱈᱉ᱍᱎᱏ', SET_Lepcha],
-        'Lycian1': ['𐊀𐊁𐊂𐊃𐊄𐊅𐊆𐊇𐊈𐊉𐊊𐊋𐊌𐊍𐊎𐊏𐊐𐊑𐊒𐊓𐊔𐊕𐊖𐊗𐊘𐊙𐊚𐊛𐊜', SET_Lycian],
-        'Phags-Pa1': ['ꡀꡁꡂꡃꡄꡅꡆꡇꡈꡉꡊꡋꡌꡍꡎꡏꡐꡑꡒꡓꡔꡕꡖꡗꡘꡙꡚꡛꡜꡝꡞꡟꡠꡡꡢꡣꡤꡥꡦꡧꡨꡩꡪꡫꡬꡭꡮꡯꡰꡱꡲꡳ꡴꡵꡶ꡟ꡷', SET_PhagsPa],
-        'Tif1': ['ⴰⴱⴲⴳⴴⴵⴶⴷⴸⴹⴺⴻⴼⴽⴾⴿⵀⵁⵂⵃⵄⵅⵆⵇⵈⵉⵊⵋⵌⵯ⵰ⵍⵎⵏⵐⵑⵒⵓⵔⵕⵖⵗⵘⵙⵚⵛⵜⵝⵞⵟⵠⵡⵢⵣⵤⵥⵦⵧ', SET_Tifinagh],
-        'Yi1': ['ꀀꀁꀂꀃꀄꀅꀆꀇꀈꀉꀊꀋꀌꀍꀎꀏ', SET_Yi],
-        'Yi2': ['ꀐꀑꀒꀓꀔꀕꀖꀗꀘꀙꀚꀛꀜꀝ', SET_Yi],
-        'Yi3': ['ꀞꀟꀠꀡꀢꀣꀤꀥꀦꀧꀨꀩꀪꀫ', SET_Yi],
-        'JpBasic': ['あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん', SET_Japanese],
-        'JpV_sVHir': ['がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ', SET_Japanese],
-        'JpPronounciations': ['ぁぃぅぇぉっゃゅょ', SET_Japanese],
-        'JpKanji1': ['日月山川人学車家本大愛海食心書', SET_Japanese],
-        'JpPunctuation': ['、。〆〤「」『』♪★♨〒', SET_Japanese],
-        'JpCJK1': ['青年水火木金土天月生川石', SET_Japanese],
-        'JpFamilyTimeDir': ['道手信力大天国母父子女名時明心', SET_Japanese],
-        'JpNatureGeography': ['山川海島森林花鳥動物風雨雷', SET_Japanese],
-        'JpActionsVerbs': ['行見る書話食飲買歩話教学遊', SET_Japanese],
-        'JpAbstractEmotion': ['愛怒悲楽幸不安恐怖希望悲痛悲惨', SET_Japanese],
-        'JpTimeAndSpace': ['昼夜朝晩月年分秒速遅間前後', SET_Japanese],
-        'JpPolitical': ['政府国民議会法政民主共産資本', SET_Japanese],
-        'JpBodyHealth': ['体心眼耳口鼻手足頭命病', SET_Japanese],
-        'JpSeas': ['海潮波深海海底漁海岸', SET_Japanese],
-        'JpSeasVerbs': ['漁る浮かぶ泳ぐ',SET_Japanese],
-        'JpSeasCombined': ['海潮波漁る浮かぶ泳ぐ深海海底漁海岸',SET_Japanese],
-        'JpSoulSpirit': ['魂宵頭霊体光話白川命闇名土天月心後水法幸火信森海楽風林愛間怒銀悲波銅金星', SET_Japanese],
-        'Kr1': ['기다로동픈템랍쪽찬셨충맞완', SET_Korean],
-        'Myanmar1': ['ꧦꧩꩲꩳꩡဝ꩸꩹ႀၹꩭꧪꧫဋကꧣꧨၮꧠ', SET_Myanmar],
-        'Myanmar2': ['ဪဩႀꩲၹꩭꩺ', SET_Myanmar]
-
-    }
+    glyph_table = saved_glyphs
     glyph_opts = [k for k in sorted(glyph_table.keys())]
     glyphs_select = tab1.selectbox('Glyph Table', glyph_opts, 8)
     glyphs = [i for i in glyph_table[glyphs_select][0]]
     tab1.code("".join(glyphs))
 
 # FONT CONTROL
-font_path = (tab1.text_input('Fonts',SET_hieroglyphs) if manual_glyphs else glyph_table[glyphs_select][1])
+font_path = (tab1.text_input('Fonts',saved_glyphs['Egyptian1'][1]) if manual_glyphs else glyph_table[glyphs_select][1])
 
 font_size = tab1.number_input('Glyph Size', 10,36,16)
 
