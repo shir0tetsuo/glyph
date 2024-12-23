@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import matplotlib.colors as mcolors
 import random
-import noise
 import os
-import uuid
 
 import Components
 import Components.loaders
@@ -60,91 +58,6 @@ def edit_heightmap(heightmap):
         st.error(f"Error parsing heightmap: {e}")
         return heightmap
 
-# Function to create a preview of the selected colormap
-def show_cmap_preview(cmap_name):
-    # Create a gradient image to show the colormap
-    gradient = np.linspace(0, 1, 256).reshape(1, -1)
-    gradient = np.vstack((gradient, gradient))
-
-    fig, ax = plt.subplots(figsize=(6, 1))  # Preview size
-    ax.set_title(f"Colormap: {cmap_name}")
-    ax.imshow(gradient, aspect='auto', cmap=cmap_name)
-    ax.set_axis_off()  # Hide axis
-    st.sidebar.pyplot(fig)
-
-
-# Function to generate a 32x32 array of random values between 0 and 9
-def generate_array(seed=None):
-    np.random.seed(seed)  # Ensure reproducibility with seed
-    return np.random.randint(0, 10, size=(32, 32))
-
-def generate_perlin_noise(width, height, scale=10.0, octaves=6, seed=None):
-    """Generates a heightmap using Perlin noise with integer values between 0 and 9."""
-    shape = (width, height)
-    world = np.zeros(shape)
-
-    # Generate Perlin noise and scale it to values between 0 and 9
-    for i in range(width):
-        for j in range(height):
-            # Generate noise value between -1 and 1
-            value = noise.pnoise2(i / scale,
-                                  j / scale,
-                                  octaves=octaves,
-                                  persistence=0.5,
-                                  lacunarity=2.0,
-                                  repeatx=1024,
-                                  repeaty=1024,
-                                  base=seed)
-            # Scale the value to between 0 and 9 and ensure it's an integer
-            value = (value + 1) * 4.5  # Maps -1,1 to 0,9
-            value = int(value)  # Ensure it's an integer
-            
-            # Ensure the value is within bounds (0 to 9)
-            world[i][j] = max(0, min(9, value))
-
-    return world.astype(np.int32)  # Ensuring the array type is integer (0-9)
-
-# Custom colormap from a list of colors
-def custom_colormap(colorHex:list, colorName):
-    return mcolors.ListedColormap(colorHex, name=colorName)
-
-# Alternatively, for a gradient
-def gradient_colormap(colorHex:list, colorName):
-    return mcolors.LinearSegmentedColormap.from_list(colorName, colorHex)
-
-def string_to_heightmap(input_string, height=32, width=32, value_range=(0, 9)):
-    """
-    Converts a long string into a heightmap (2D array) based on character ASCII values.
-    
-    Parameters:
-    - input_string (str): The input string to convert into a heightmap.
-    - height (int): The height (rows) of the output heightmap.
-    - width (int): The width (columns) of the output heightmap.
-    - value_range (tuple): The range of integer values (min, max) for the heightmap (default is 0-9).
-    
-    Returns:
-    - np.ndarray: A 2D array representing the heightmap with integer values.
-    """
-    
-    # Convert the string to a list of ASCII values (or Unicode code points)
-    ascii_values = [ord(c) for c in input_string]
-    
-    # If the string is too short, repeat it to fill the heightmap
-    while len(ascii_values) < height * width:
-        ascii_values.extend(ascii_values)  # Repeat the list until it's long enough
-    
-    # Trim to fit the heightmap size
-    ascii_values = ascii_values[:height * width]
-    
-    # Convert the list of ASCII values into a 2D array (height x width)
-    heightmap = np.array(ascii_values).reshape((height, width))
-    
-    # Map ASCII values to the specified value range (0-9 or other)
-    min_val, max_val = value_range
-    heightmap = (heightmap - heightmap.min()) / (heightmap.max() - heightmap.min()) * (max_val - min_val)
-    heightmap = heightmap.astype(int)  # Ensure the values are integers
-    
-    return heightmap
 
 color_modes = ['cmap', 'Specified', 'Gradient']
 color_mode = st.sidebar.selectbox('Select Coloring Mode', color_modes, index=0)
@@ -160,12 +73,12 @@ if (color_mode == color_modes[0]):
     selected_cmap = st.sidebar.selectbox("Choose a colormap", cmap_list)
 
 if (color_mode == color_modes[1]):
-    selected_cmap = custom_colormap(saved_colors[selected_custom_color], 'Defined')
+    selected_cmap = Components.generators.custom_colormap(saved_colors[selected_custom_color], 'Defined')
 
 if (color_mode == color_modes[2]):
-    selected_cmap = gradient_colormap(saved_colors[selected_custom_color], 'Gradient')
+    selected_cmap = Components.generators.gradient_colormap(saved_colors[selected_custom_color], 'Gradient')
 
-show_cmap_preview(selected_cmap)
+Components.generators.show_cmap_preview(selected_cmap)
 
 # TAB DEFINITIONS
 tab1, tab2, tab3, tab4 = st.sidebar.tabs(['Glyphs & Font', 'Heightmap', 'Seed', 'Saving'])
@@ -211,10 +124,10 @@ hm_blend_noise = tab2.toggle('Blend Noise', False, disabled=(True if hm_select =
 
 hm_edit_mode = tab2.toggle('Editor', False)
 
-noise_map = generate_perlin_noise(32, 32, seed=seed)
+noise_map = Components.generators.generate_perlin_noise(32, 32, seed=seed)
 
 if (hm_select == hm_opts[0]):
-    Heightmap = generate_array(seed)
+    Heightmap = Components.generators.generate_array(seed)
 if (hm_select == hm_opts[1]):
     Heightmap = noise_map
 if (hm_select == hm_opts[2]):
@@ -223,16 +136,16 @@ if (hm_select == hm_opts[2]):
     if len(to_height) != 1024:
         tab2.info('String must be 1024 characters encoded 0-9')
     else:
-        Heightmap = string_to_heightmap(to_height)
+        Heightmap = Components.generators.string_to_heightmap(to_height)
 if (hm_select == hm_opts[3]):
     template_select = tab2.selectbox('Select a template to use', sorted(saved_maps.keys()))
-    Heightmap = string_to_heightmap(saved_maps[template_select])
+    Heightmap = Components.generators.string_to_heightmap(saved_maps[template_select])
 
 if hm_inversion:
-    Heightmap = 9 - Heightmap  # Assuming heightmap values range from 0 to 9
+    Heightmap = Components.generators.invert_values(Heightmap) # 9 - Heightmap 
 
 if hm_blend_noise:
-    Heightmap = np.where(Heightmap == 0, noise_map, Heightmap)
+    Heightmap = Components.generators.blend_noise(Heightmap, noise_map, 0)
 
 with st.expander('Data', icon='🛂'):
     if hm_edit_mode:
