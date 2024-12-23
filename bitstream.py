@@ -21,6 +21,9 @@ SavedGlyphs = Components.loaders.SavedGlyphs
 
 # Cache Resources in Streamlit
 
+run_mode = 'Development'
+'''Change this to ensure security'''
+
 if not (os.path.exists('output')):
     os.makedirs('output/')
 
@@ -102,6 +105,9 @@ apply_alpha = tab1.toggle('Apply Alpha to Glyphs', False)
 
 hm_opts = ['Unorganized', 'Noise', 'String', 'Template']
 
+if run_mode == 'Development':
+    hm_opts = hm_opts + ['Image']
+
 hm_select = tab2.selectbox('Heightmap', hm_opts, index=3)
 
 randomize_seed = tab3.toggle('Randomize Seed', True)
@@ -140,6 +146,9 @@ if (hm_select == hm_opts[2]):
 if (hm_select == hm_opts[3]):
     template_select = tab2.selectbox('Select a template to use', sorted(saved_maps.keys()))
     Heightmap = Components.generators.string_to_heightmap(saved_maps[template_select])
+if (hm_select == hm_opts[4]):
+    img_path = tab2.text_input('Image Path')
+    Heightmap = Components.generators.string_to_heightmap(Components.generators.image_to_integer_string(img_path))
 
 if hm_inversion:
     Heightmap = Components.generators.invert_values(Heightmap) # 9 - Heightmap 

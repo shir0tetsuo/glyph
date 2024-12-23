@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import matplotlib.colors as mcolors
 import noise
+from PIL import Image
 
 # Define the Symbol class
 class Symbol:
@@ -177,3 +178,22 @@ def invert_values(heightmap):
 
 def blend_noise(heightmap, noisemap, flagged_int:int):
     return np.where(heightmap == flagged_int, noisemap, heightmap)
+
+def image_to_integer_string(image_path):
+    # Open the image
+    img = Image.open(image_path)
+    
+    # Convert the image to grayscale
+    img = img.convert('L')
+    
+    # Resize the image to 32x32
+    img = img.resize((32, 32))
+    
+    # Normalize pixel values to a range of 0-9
+    pixel_values = np.array(img)
+    normalized_values = (pixel_values / 255 * 9).astype(int)
+    
+    # Convert the array to a single string of integers
+    integer_string = ''.join(map(str, normalized_values.flatten()))
+    
+    return integer_string
