@@ -185,7 +185,7 @@ font_size = tab1.number_input('Glyph Size', 10,36,glyph_table[glyphs_select][2])
 
 invert_font_colors = tab1.toggle('Invert Glyph Colors', False)
 
-apply_alpha = tab1.toggle('Apply Alpha to Glyphs', True)
+apply_alpha = tab1.toggle('Apply Alpha to Glyphs', False)
 
 hm_opts = ['Unorganized', 'Noise', 'String', 'Template']
 
