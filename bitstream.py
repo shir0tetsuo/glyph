@@ -120,11 +120,7 @@ def create_heatmap_with_symbols(
         # Save the figure with high resolution (higher dpi)
         plt.savefig('output/'+save_name, dpi=dpi, bbox_inches='tight')  # Save image with larger resolution
     
-    # Show the plot
-    #plt.show()
-    st.pyplot(plt)
-
-    plt.close()
+    return plt
 
 # Function to generate a 32x32 array of random values between 0 and 9
 def generate_array(seed=None):
@@ -234,23 +230,16 @@ show_cmap_preview(selected_cmap)
 # TAB DEFINITIONS
 tab1, tab2, tab3, tab4 = st.sidebar.tabs(['Glyphs & Font', 'Heightmap', 'Seed', 'Saving'])
 
-show_info = tab1.toggle('Show Info', False)
-manual_glyphs = tab1.toggle('Manual Glyphs', False)
+show_info = tab1.toggle('Generation Information on Image', False)
 
-
-if manual_glyphs:
-    glyph_raw = tab1.text_input('Glyphs', '𓋴𓇋𓆗𓅱𓆉𓎡𓍯𓃥𓃣𓈖𓇋𓃢𓃦')
-    glyphs_select = "Manual"
-    glyphs = [i for i in glyph_raw]
-else:
-    glyph_table = saved_glyphs
-    glyph_opts = [k for k in sorted(glyph_table.keys())]
-    glyphs_select = tab1.selectbox('Glyph Table', glyph_opts, 8)
-    glyphs = [i for i in glyph_table[glyphs_select][0]]
-    tab1.code("".join(glyphs))
+glyph_table = saved_glyphs
+glyph_opts = [k for k in sorted(glyph_table.keys())]
+glyphs_select = tab1.selectbox('Glyph Table', glyph_opts, 8)
+glyphs = [i for i in glyph_table[glyphs_select][0]]
+tab1.code("".join(glyphs))
 
 # FONT CONTROL
-font_path = (tab1.text_input('Fonts',saved_glyphs['Egyptian1'][1]) if manual_glyphs else glyph_table[glyphs_select][1])
+font_path = glyph_table[glyphs_select][1]
 
 font_size = tab1.number_input('Glyph Size', 10,36,16)
 
@@ -318,6 +307,11 @@ image_name = tab4.text_input('Image Name', (f'{hm_select}_{selected_template}_{g
 st.sidebar.write(f'Saving is {"Enabled" if save_image else "Disabled"}')
 
 
-
 if st.sidebar.button('Stream', icon='🐠'):
-    create_heatmap_with_symbols(Heightmap, glyphs, seed=(random.randint(0,100000) if more_noise else seed), font_path=font_path, figsize=(16, 16), dpi=300, text=text_input, cmap=selected_cmap, save=save_image, save_name=image_name, display_zone=show_info, custom_cmap=custom_colors, fontsz=font_size)
+    toast = st.toast(f'Generating {seed}..', icon='🐠')
+    st.pyplot(create_heatmap_with_symbols(Heightmap, glyphs, seed=(random.randint(0,100000) if more_noise else seed), font_path=font_path, figsize=(16, 16), dpi=300, text=text_input, cmap=selected_cmap, save=save_image, save_name=image_name, display_zone=show_info, custom_cmap=custom_colors, fontsz=font_size))
+    if save_image:
+        toast = st.toast(f'{image_name}', icon='💾️')
+    else:
+        toast = st.toast(f'Success {seed}', icon='🐠')
+    plt.close()

@@ -6,6 +6,9 @@ def read_file_as_list(file_path):
         return [line.strip() for line in file]
 
 class SavedMaps:
+    '''
+    Loads heightmaps from files.
+    '''
 
     def __init__(self, path=os.getcwd()):
 
@@ -26,10 +29,15 @@ class SavedMaps:
     
     @property
     def maps(self):
-        return {item:self.read_file_as_string(os.path.join(self.path, item)) for item in self.items}
+        return {
+            os.path.splitext(item)[0]:
+            self.read_file_as_string(os.path.join(self.path, item)) for item in self.items}
 
 
 class SavedColors:
+    '''
+    Loads colormaps from files.
+    '''
 
     def __init__(self, path=os.getcwd()):
 
@@ -41,9 +49,15 @@ class SavedColors:
 
     @property
     def maps(self):
-        return {item:read_file_as_list(os.path.join(self.path, item)) for item in self.items}
+        return {
+            os.path.splitext(item)[0]:
+            read_file_as_list(os.path.join(self.path, item)) for item in self.items
+        }
 
 class SavedGlyphs:
+    '''
+    Loads glyphs and fonts from files.
+    '''
 
     def __init__(self, path=os.getcwd(), fontdir='/usr/share/fonts/truetype/noto/'):
 
@@ -56,11 +70,26 @@ class SavedGlyphs:
         pass
 
     @property
-    def maps(self):
+    def maps(self)-> dict[str, list[str|int]]:
+        '''
+        Reads glyphs and fonts from files.
+        
+        ### parameters
+            
+            {
+                os.path.splitext(`filename`)[0]:
+                [
+                    `glyphs`,
+                    `font_path`,
+                    `font_size`
+                ]
+            }
+        '''
         return {
             os.path.splitext(filename)[0]: [
-                filedata[1],  # Glyphs
-                os.path.join(self.fontdir, filedata[0])  # Directory
+                filedata[1],                             # Glyphs
+                os.path.join(self.fontdir, filedata[0]), # Directory
+                int(filedata[2])                         # Font Size (Generative Iter)
             ]
             for filename in self.items
             for filedata in [read_file_as_list(os.path.join(self.path, filename))]
