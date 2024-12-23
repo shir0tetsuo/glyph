@@ -181,7 +181,11 @@ tab1.code("".join(glyphs))
 # FONT CONTROL
 font_path = glyph_table[glyphs_select][1]
 
-font_size = tab1.number_input('Glyph Size', 10,36,16)
+font_size = tab1.number_input('Glyph Size', 10,36,glyph_table[glyphs_select][2])
+
+invert_font_colors = tab1.toggle('Invert Glyph Colors', False)
+
+apply_alpha = tab1.toggle('Apply Alpha to Glyphs', True)
 
 hm_opts = ['Unorganized', 'Noise', 'String', 'Template']
 
@@ -248,7 +252,7 @@ st.sidebar.write(f'Saving is {"Enabled" if save_image else "Disabled"}')
 
 if st.sidebar.button('Stream', icon='🐠'):
     toast = st.toast(f'Generating {seed}..', icon='🐠')
-    st.pyplot(Components.generators.create_heatmap_with_symbols(Heightmap, glyphs, seed=(random.randint(0,100000) if more_noise else seed), font_path=font_path, figsize=(16, 16), dpi=300, text=text_input, cmap=selected_cmap, save=save_image, save_name=image_name, display_zone=show_info, custom_cmap=custom_colors, fontsz=font_size))
+    st.pyplot(Components.generators.create_heatmap_with_symbols(Heightmap, glyphs, seed=(random.randint(0,100000) if more_noise else seed), font_path=font_path, figsize=(16, 16), dpi=300, text=text_input, cmap=selected_cmap, save=save_image, save_name=image_name, display_zone=show_info, custom_cmap=custom_colors, fontsz=font_size, symbol_invert_color=invert_font_colors, symbol_semi_transparent=apply_alpha))
     if save_image:
         toast = st.toast(f'{image_name}', icon='💾️')
     else:
