@@ -26,3 +26,7 @@ streamlit run bitstream.py
 
 ### Windows
 It should be fairly straight forward (with typical Python 3.12.3 installations) to get this going, but I no longer own a Windows installation.
+
+## Web Application
+
+Intended to be intuitive, but broken apart to be used in other applications.

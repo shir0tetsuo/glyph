@@ -10,6 +10,7 @@ import uuid
 
 import Components
 import Components.loaders
+import Components.generators
 
 SavedMaps = Components.loaders.SavedMaps
 SavedColors = Components.loaders.SavedColors
@@ -19,6 +20,8 @@ SavedGlyphs = Components.loaders.SavedGlyphs
 # https://terrafans.xyz/antenna/
 # https://terraforms.oolong.lol/terraform
 # https://unicode-explorer.com/b/13000
+
+# Cache Resources in Streamlit
 
 if not (os.path.exists('output')):
     os.makedirs('output/')
@@ -38,7 +41,7 @@ if "saved_glyphs" not in st.session_state:
 
 saved_glyphs = st.session_state.saved_glyphs
 
-# Display the heightmap in a text area for editing
+# Display the heightmap in a text area for editing (Streamlit)
 def edit_heightmap(heightmap):
     heightmap_str = '\n'.join([' '.join(map(str, row)) for row in heightmap])
     edited_str = st.text_area('Edit Heightmap', heightmap_str, height=300)
@@ -69,74 +72,11 @@ def show_cmap_preview(cmap_name):
     ax.set_axis_off()  # Hide axis
     st.sidebar.pyplot(fig)
 
-# Create a function to generate the heatmap and overlay symbols
-def create_heatmap_with_symbols(
-        array,                     
-        glyphs, 
-        seed=None, 
-        font_path=None, 
-        figsize=(16, 16), 
-        dpi=300, 
-        text=None, 
-        cmap='viridis',
-        save:bool=True,
-        save_name='heatmap_with_symbols_shifted.png',
-        display_zone:bool=False,
-        custom_cmap:bool=False,
-        fontsz:int=16):
-    np.random.seed(seed)  # Ensure reproducibility with seed
-
-    # Create a colormap for the heatmap
-    cmap = (cmap if custom_cmap else plt.get_cmap(cmap))
-    norm = mcolors.Normalize(vmin=0, vmax=9)
-
-    # Calculate the shift based on the seed (to make the symbols shift predictably)
-    shift = seed % len(glyphs)  # Calculate the shift based on the seed
-
-    # Create the plot with a larger figsize
-    fig, ax = plt.subplots(figsize=figsize)  # Adjusted figsize for better clarity
-    
-    # Display the heatmap
-    cax = ax.imshow(array, cmap=cmap, norm=norm)
-
-    # Overlay symbols based on the array values and the shift from the seed
-    for i in range(array.shape[0]):
-        for j in range(array.shape[1]):
-            symbol_idx = (array[i, j] + shift) % len(glyphs)  # Apply the shift to the array value
-            symbol = Symbol(glyphs[symbol_idx], font_path=font_path)  # Pick symbol based on the shifted index
-            symbol.draw(ax, j, i, fontsz)
-
-    # Remove axis labels for a clean view
-    ax.axis('off')
-
-    if text:
-        ax.text(.94, -0.01, text, ha='center', va='center', fontsize=12, color='gray', transform=ax.transAxes)
-    
-    if display_zone:
-        #ax.text(.1, -0.01, f'{"".join(glyphs)}', ha='center', va='center', fontsize=12, color='gray', fontproperties=(fm.FontProperties(fname=font_path) if font_path else None), transform=ax.transAxes)
-        ax.text(.2, -0.01, f'{save_name.replace(".png","")}', ha='center', va='center', fontsize=12, color='gray', transform=ax.transAxes)
-
-    if save:
-        # Save the figure with high resolution (higher dpi)
-        plt.savefig('output/'+save_name, dpi=dpi, bbox_inches='tight')  # Save image with larger resolution
-    
-    return plt
 
 # Function to generate a 32x32 array of random values between 0 and 9
 def generate_array(seed=None):
     np.random.seed(seed)  # Ensure reproducibility with seed
     return np.random.randint(0, 10, size=(32, 32))
-
-# Define the Symbol class
-class Symbol:
-    def __init__(self, symbol, font_path=None):
-        self.symbol = symbol
-        self.font_path = font_path
-
-    def draw(self, ax, x, y, size=16):  # Reduced font size to 10
-        # If a font path is provided, use it; otherwise, default to system font
-        font_properties = fm.FontProperties(fname=self.font_path) if self.font_path else None
-        ax.text(x, y, self.symbol, fontsize=size, ha='center', va='center', color='black', fontproperties=font_properties)
 
 def generate_perlin_noise(width, height, scale=10.0, octaves=6, seed=None):
     """Generates a heightmap using Perlin noise with integer values between 0 and 9."""
@@ -306,10 +246,9 @@ image_name = tab4.text_input('Image Name', (f'{hm_select}_{selected_template}_{g
 
 st.sidebar.write(f'Saving is {"Enabled" if save_image else "Disabled"}')
 
-
 if st.sidebar.button('Stream', icon='🐠'):
     toast = st.toast(f'Generating {seed}..', icon='🐠')
-    st.pyplot(create_heatmap_with_symbols(Heightmap, glyphs, seed=(random.randint(0,100000) if more_noise else seed), font_path=font_path, figsize=(16, 16), dpi=300, text=text_input, cmap=selected_cmap, save=save_image, save_name=image_name, display_zone=show_info, custom_cmap=custom_colors, fontsz=font_size))
+    st.pyplot(Components.generators.create_heatmap_with_symbols(Heightmap, glyphs, seed=(random.randint(0,100000) if more_noise else seed), font_path=font_path, figsize=(16, 16), dpi=300, text=text_input, cmap=selected_cmap, save=save_image, save_name=image_name, display_zone=show_info, custom_cmap=custom_colors, fontsz=font_size))
     if save_image:
         toast = st.toast(f'{image_name}', icon='💾️')
     else:
