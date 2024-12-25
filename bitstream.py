@@ -22,7 +22,7 @@ SavedGlyphs = Components.loaders.SavedGlyphs
 # Cache Resources in Streamlit
 
 run_mode = 'Development'
-'''Change this to ensure security'''
+# Change this to ensure secure environment
 
 if not (os.path.exists('output')):
     os.makedirs('output/')
