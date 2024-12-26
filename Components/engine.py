@@ -2,8 +2,8 @@ import random
 import numpy as np
 
 def NewRandomSeed():
-    # Get a random integer from 0 to 10000
-    return int(random.uniform(0, 10000))
+    # Get a random integer from 0 to 500000
+    return int(random.uniform(0, 500000))
 
 class WeightedDictRandomizer:
     def __init__(self, weights: dict[str, float], seed=None):
