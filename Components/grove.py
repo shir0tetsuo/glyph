@@ -219,7 +219,8 @@ def FromSeed(Gf:GroveFloors, level:int, seed, saved_maps:dict[str, int], saved_c
         custom_cmap=IS_CUSTOM,
         fontsz=Glyphs_fontsize,
         symbol_invert_color=do_glyph_invert,
-        symbol_semi_transparent=do_glyph_alpha
+        symbol_semi_transparent=do_glyph_alpha,
+        base_directory=Gf.path
     )
 
     Px(80, GENERATION_NAME)

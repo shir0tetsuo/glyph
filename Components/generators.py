@@ -5,6 +5,7 @@ import matplotlib.font_manager as fm
 import matplotlib.colors as mcolors
 import noise
 from PIL import Image
+import os
 
 # Define the Symbol class
 class Symbol:
@@ -41,7 +42,8 @@ def create_heatmap_with_symbols(
         custom_cmap:bool=False,
         fontsz:int=16,
         symbol_invert_color=False,
-        symbol_semi_transparent=False
+        symbol_semi_transparent=False,
+        base_directory = os.getcwd()
     ):
 
     array = (string_to_heightmap(array) if type(array) == str else array)
@@ -85,8 +87,10 @@ def create_heatmap_with_symbols(
         ax.text(.2, -0.01, f'{save_name.replace(".png","")}', ha='center', va='center', fontsize=12, color='gray', transform=ax.transAxes)
 
     if save:
+        output_dir = os.path.join(base_directory, 'output', save_name + ('.png' if not save_name.endswith('.png') else ''))
         # Save the figure with high resolution (higher dpi)
-        plt.savefig('output/'+save_name, dpi=dpi, bbox_inches='tight')  # Save image with larger resolution
+        plt.savefig(output_dir, dpi=dpi, bbox_inches='tight')  # Save image with larger resolution
+        print(f"Image saved to: {output_dir}")
     
     return plt
 
