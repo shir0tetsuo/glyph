@@ -153,10 +153,10 @@ def FromSeed(Gf:GroveFloors, level:int, seed, saved_maps:dict[str, int], saved_c
     do_glyph_invert = biome_settings.get('invert_glyphs', False)
     do_glyph_alpha = biome_settings.get('alpha_glyphs', False)
 
-    custom_colormap = (True if selected_colormap in saved_colors.keys() else False)
+    IS_CUSTOM = (True if selected_colormap in saved_colors.keys() else False)
 
     # Determine if custom color is gradient or specific
-    if (custom_colormap and engine.BooleanFromSeedWeight(seed, biome_settings.get('gradient', 0.5))):
+    if (IS_CUSTOM and engine.BooleanFromSeedWeight(seed, biome_settings.get('gradient', 0.5))):
         do_gradient = True
     else:
         do_gradient = False
@@ -168,14 +168,21 @@ def FromSeed(Gf:GroveFloors, level:int, seed, saved_maps:dict[str, int], saved_c
     Glyphs_fontpath = saved_glyphs[selected_glyphtable][1]
     Glyphs_fontsize = saved_glyphs[selected_glyphtable][2]
 
-    if custom_colormap:
-        selected_cmap = (generators.custom_gradient(selected_colormap) if do_gradient else generators.custom_colormap(selected_colormap))
+    if (IS_CUSTOM == True):
+        selected_cmap = (generators.custom_colormap(saved_colors[selected_colormap], 'Gradient') if do_gradient else generators.custom_colormap(saved_colors[selected_colormap], 'Specified'))
     else:
         selected_cmap = selected_colormap
 
     GenerationName = [
-        selected_colormap+(('.cg' if do_gradient else '.cs') if custom_colormap else '.m'),
+        # .cg = gradient
+        # .cs = specific
+        # .m  = matplotlib cmap
+        selected_colormap+(('.cg' if do_gradient else '.cs') if IS_CUSTOM else '.m'),
+        # .i  = invert heightmap
+        # .n  = add noise
         selected_heightmap+('.i' if InvertHeightmap else '')+('.n' if AddNoise else ''),
+        # .i  = invert glyph
+        # .a  = add alpha
         selected_glyphtable+(('.i' if do_glyph_invert else '')+('.a' if do_glyph_alpha else '')),
         str(seed)
     ]
@@ -186,6 +193,17 @@ def FromSeed(Gf:GroveFloors, level:int, seed, saved_maps:dict[str, int], saved_c
 
     dpi=300
 
+    #print('\n'.join([' '.join(map(str, row)) for row in Heightmap]))
+    #print(Glyphs)
+    #print(seed)
+    #print(Glyphs_fontpath)
+    #print(dpi)
+    #print(selected_cmap)
+    #print(IS_CUSTOM)
+    #print(Glyphs_fontsize)
+    #print(do_glyph_invert)
+    #print(do_glyph_alpha)
+
     State = generators.create_heatmap_with_symbols(
         array=Heightmap,
         glyphs=Glyphs,
@@ -195,10 +213,10 @@ def FromSeed(Gf:GroveFloors, level:int, seed, saved_maps:dict[str, int], saved_c
         dpi=dpi,
         text=f'Level {level}',
         cmap=selected_cmap,
-        save=False,
+        save=True,
         save_name=GENERATION_NAME,
         display_zone=True,
-        custom_cmap=custom_colormap,
+        custom_cmap=IS_CUSTOM,
         fontsz=Glyphs_fontsize,
         symbol_invert_color=do_glyph_invert,
         symbol_semi_transparent=do_glyph_alpha

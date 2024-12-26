@@ -49,7 +49,11 @@ def create_heatmap_with_symbols(
     np.random.seed(seed)  # Ensure reproducibility with seed
 
     # Create a colormap for the heatmap
-    cmap = (cmap if custom_cmap else plt.get_cmap(cmap))
+    if isinstance(cmap, mcolors.ListedColormap):
+        cmap = cmap
+    else:
+        cmap = plt.get_cmap(cmap)
+    #cmap = (cmap if custom_cmap else plt.get_cmap(cmap))
     norm = mcolors.Normalize(vmin=0, vmax=9)
 
     # Calculate the shift based on the seed (to make the symbols shift predictably)

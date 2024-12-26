@@ -21,6 +21,7 @@ class WeightedDictRandomizer:
         
         # Check that all weight values add up to 1
         if not self._validate_weights(weights):
+            print(weights)
             raise ValueError("Weights do not sum to 1")
 
         # Normalize weights
