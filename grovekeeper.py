@@ -7,8 +7,16 @@ import os
 from datetime import datetime
 
 import Components
+import Components.engine
 import Components.loaders
 import Components.generators
+import Components.grove
+
+saved_maps = Components.loaders.SavedMaps().maps
+saved_colors = Components.loaders.SavedColors().maps
+saved_glyphs = Components.loaders.SavedGlyphs().maps
+
+GROVEFLOORS = Components.grove.GroveFloors()
 
 __version__ = 'v1.0.0'
 
@@ -65,5 +73,30 @@ async def on_ready():
 async def dtc1(ctx:commands.context.Context, passing_number):
     print(ctx)
     await ctx.send(f'{ctx.message.author.mention} {passing_number}', ephemeral=True)
+@client.hybrid_command(description="Developer Test Command (Dream Test)")
+async def dtc2(ctx:commands.context.Context):
+    Components.loaders.print_progress_bar(0, 100, 'Dream Test', 'Starting...')
+    
+    # Send a placeholder message
+    await ctx.send(f"Generating image... this might take a moment!", ephemeral=True)
+
+    GENERATION_NAME, png_buffer = Components.grove.FromSeed(
+        Gf=GROVEFLOORS,
+        level=0,
+        seed=Components.engine.NewRandomSeed(),
+        saved_maps=saved_maps,
+        saved_colors=saved_colors,
+        saved_glyphs=saved_glyphs
+    )
+    Components.loaders.print_progress_bar(98, 100, GENERATION_NAME, str(len(png_buffer.getvalue())))
+
+    with png_buffer as buffer:
+        buffer.seek(0)
+        discord_buffer = discord.File(fp=buffer, filename=GENERATION_NAME+'.png')
+
+    # Edit the placeholder message to include the image
+    await ctx.send(file=discord_buffer, ephemeral=True)
+
+    Components.loaders.print_progress_bar(100, 100, GENERATION_NAME, 'Sent to Discord')
 
 client.run(TOKEN)

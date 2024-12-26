@@ -1,0 +1,9 @@
+# These fonts are used to make some parts work (Noto)
+Libre_Barcode_128
+Libre_Barcode_39
+Noto_Emoji
+Noto_Sans_JP
+Noto_Sans_KR
+Noto_Sans_Math
+Noto_Sans_PhagsPa
+Yarndings_12

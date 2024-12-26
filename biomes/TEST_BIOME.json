@@ -1,0 +1,1 @@
+{"heightmaps": {"man": 0.5, "A": 0.5}, "colormaps": {"cividis": 1.0}, "glyphs": {"EgyptDots": 0.5, "EgyptReptiles": 0.5}, "quirks": {"invert_heightmap": 0.1, "invert_glyphs": false, "alpha_glyphs": false, "noise": 0.5, "gradient": 0.0}}

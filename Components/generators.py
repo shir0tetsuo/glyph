@@ -43,6 +43,9 @@ def create_heatmap_with_symbols(
         symbol_invert_color=False,
         symbol_semi_transparent=False
     ):
+
+    array = (string_to_heightmap(array) if type(array) == str else array)
+
     np.random.seed(seed)  # Ensure reproducibility with seed
 
     # Create a colormap for the heatmap
@@ -55,7 +58,6 @@ def create_heatmap_with_symbols(
     # Create the plot with a larger figsize
     fig, ax = plt.subplots(figsize=figsize)  # Adjusted figsize for better clarity
     
-    # Display the heatmap
     cax = ax.imshow(array, cmap=cmap, norm=norm)
 
     # alpha control for symbol
