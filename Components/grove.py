@@ -193,17 +193,6 @@ def FromSeed(Gf:GroveFloors, level:int, seed, saved_maps:dict[str, int], saved_c
 
     dpi=300
 
-    #print('\n'.join([' '.join(map(str, row)) for row in Heightmap]))
-    #print(Glyphs)
-    #print(seed)
-    #print(Glyphs_fontpath)
-    #print(dpi)
-    #print(selected_cmap)
-    #print(IS_CUSTOM)
-    #print(Glyphs_fontsize)
-    #print(do_glyph_invert)
-    #print(do_glyph_alpha)
-
     State = generators.create_heatmap_with_symbols(
         array=Heightmap,
         glyphs=Glyphs,
@@ -223,6 +212,18 @@ def FromSeed(Gf:GroveFloors, level:int, seed, saved_maps:dict[str, int], saved_c
         base_directory=Gf.path
     )
 
+    generated = {
+        'seed': seed,
+        'level': level,
+        'biome': selected_biome.biome_ID,
+        'heightmap': selected_heightmap,
+        'colormap': selected_colormap,
+        'glyphtable': selected_glyphtable,
+        'inverted': InvertHeightmap,
+        'noise': AddNoise,
+        'generation_name': GENERATION_NAME
+    }
+
     Px(80, GENERATION_NAME)
 
     # write png to IO buffer
@@ -232,4 +233,4 @@ def FromSeed(Gf:GroveFloors, level:int, seed, saved_maps:dict[str, int], saved_c
     Px(95, GENERATION_NAME)
     State.close()
 
-    return (GENERATION_NAME, png_buffer)
+    return (generated, png_buffer)
