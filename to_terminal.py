@@ -37,9 +37,11 @@ def ansi_color(rgb):
 def reset_color():
 	return "\033[0m"
 
-def print_pattern(arr, glyphs, colors, uuid_str):
-	# Print 4x3 pattern with colored backgrounds and black glyphs
-	print("\nGenerated Pattern:")
+def print_pattern(arr, glyphs, colors, uuid_str, just_glyphs=False):
+	if not just_glyphs:
+		print("\nGenerated Pattern:")
+	else:
+		print('\n')
 	for i in range(arr.shape[0]):
 		row = ""
 		for j in range(arr.shape[1]):
@@ -51,6 +53,44 @@ def print_pattern(arr, glyphs, colors, uuid_str):
 		print(row)
 	print(f"\nUUID: {uuid_str}\n")
 
+def export_png(arr, glyphs, colors, uuid_str, glyph_color_map, out_path):
+	import matplotlib.pyplot as plt
+	import matplotlib.patches as mpatches
+	import matplotlib.font_manager as fm
+	rows, cols = arr.shape
+	fig, ax = plt.subplots(figsize=(cols, rows+1))
+	fig.patch.set_alpha(0)
+	ax.set_xlim(0, cols)
+	ax.set_ylim(0, rows+1)
+	ax.axis('off')
+	ax.set_facecolor('none')
+	# Use font from glyphtable
+	font_path = None
+	font_size = 32
+	if hasattr(export_png, 'font_path'):
+		font_path = export_png.font_path
+	if hasattr(export_png, 'font_size'):
+		font_size = export_png.font_size
+	font_properties = fm.FontProperties(fname=font_path) if font_path else None
+	# Draw colored rectangles and glyphs
+	for i in range(rows):
+		for j in range(cols):
+			idx = arr[i, j] % len(glyphs)
+			symbol = glyphs[idx]
+			color = glyph_color_map[symbol]
+			rect = mpatches.Rectangle((j, rows-i-0.5), 1, 1, color=color)
+			ax.add_patch(rect)
+			ax.text(
+				# Symbol X
+				j+0.5,
+				# Symbol Y 
+				rows-i, 
+				symbol, ha='center', va='center', color='black', fontsize=font_size, fontproperties=font_properties)
+	# Add UUID at the bottom
+	ax.text(cols/2, 0.15, uuid_str, ha='center', va='center', color='gray', fontsize=18)
+	plt.savefig(out_path, bbox_inches='tight', dpi=150, transparent=True)
+	plt.close(fig)
+
 if __name__ == "__main__":
 	import argparse
 	parser = argparse.ArgumentParser(description="Generate a colored glyph pattern from UUID.")
@@ -59,6 +99,10 @@ if __name__ == "__main__":
 	parser.add_argument('--seed', type=int, help='Seed for random color assignment')
 	parser.add_argument('--rows', type=int, default=3, help='Number of rows in the grid (default: 3)')
 	parser.add_argument('--cols', type=int, default=8, help='Number of columns in the grid (default: 8)')
+	parser.add_argument('--just-glyphtable', action='store_true', help='Print only the glyphtable')
+	parser.add_argument('--out', type=str, help='Export pattern as PNG to this path')
+	parser.add_argument('--uuid', type=str, help='Specify the UUID4 to use for reproducible results')
+	parser.add_argument('--shorten_uuid', type=int, help='Shorten the displayed UUID to this length, prefix with U-')
 	args = parser.parse_args()
 
 	saved_colors = SavedColors().maps
@@ -79,8 +123,17 @@ if __name__ == "__main__":
 	color_list = saved_colors[color_name]
 
 	import random
-	uuid_str = str(uuid.uuid4())
-	arr = uuid_to_heightmap(uuid_str, rows=args.rows, cols=args.cols)
+	if args.uuid:
+		uuid_full = args.uuid
+	else:
+		uuid_full = str(uuid.uuid4())
+	# Shorten UUID if requested
+	if args.shorten_uuid:
+		# Remove dashes, take first N chars, prefix with U-
+		uuid_str = 'U-' + ''.join([c for c in uuid_full if c.isalnum()])[:args.shorten_uuid]
+	else:
+		uuid_str = uuid_full
+	arr = uuid_to_heightmap(uuid_full, rows=args.rows, cols=args.cols)
 	# Assign a random color to each glyph for this run, using seed if provided
 	glyph_color_map = {}
 	available_colors = color_list.copy()
@@ -89,4 +142,16 @@ if __name__ == "__main__":
 	random.shuffle(available_colors)
 	for i, glyph in enumerate(glyphs):
 		glyph_color_map[glyph] = available_colors[i % len(available_colors)]
-	print_pattern(arr, glyphs, color_list, uuid_str)
+
+	# Print only glyphtable if requested
+	if args.just_glyphtable:
+		print_pattern(arr, glyphs, color_list, uuid_str, just_glyphs=True)
+	else:
+		print_pattern(arr, glyphs, color_list, uuid_str)
+
+	# Export PNG if requested
+	if args.out:
+		# Pass font_path and font_size from glyphtable to export_png
+		export_png.font_path = font_path
+		export_png.font_size = font_size
+		export_png(arr, glyphs, color_list, uuid_str, glyph_color_map, args.out)
