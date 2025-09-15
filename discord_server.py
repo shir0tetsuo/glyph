@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Optional, Sequence
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 # Import your existing generation module
@@ -278,9 +279,19 @@ class AddressView(discord.ui.View):
 
 # ---------- Slash command (application command) ----------
 @TREE.command(name="address", description="Open the glyph generation UI")
+@app_commands.describe(
+    seed="Optional seed string for deterministic generation",
+    rows="Number of rows in the glyph address (default 2)",
+    cols="Number of columns in the glyph address (default 8)",
+    uuid="Optional UUID string to use instead of generating a new one",
+    shorten_uuid="If set, shortens the UUID to this many characters",
+    fsize="Font size for rendering (optional)",
+    glyph_values="Custom glyph values (optional)",
+    color_values="Custom color values (optional)"
+)
 async def address(interaction: discord.Interaction,
                   seed: Optional[str] = None,
-                  rows: Optional[int] = 3,
+                  rows: Optional[int] = 2,
                   cols: Optional[int] = 8,
                   uuid: Optional[str] = None,
                   shorten_uuid: Optional[int] = None,   # <-- changed to int per your note
