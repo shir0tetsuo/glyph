@@ -1,4 +1,3 @@
-
 # Terminal pattern generator from UUID
 import uuid
 import numpy as np
@@ -103,6 +102,7 @@ if __name__ == "__main__":
 	parser.add_argument('--out', type=str, help='Export pattern as PNG to this path')
 	parser.add_argument('--uuid', type=str, help='Specify the UUID4 to use for reproducible results')
 	parser.add_argument('--shorten_uuid', type=int, help='Shorten the displayed UUID to this length, prefix with U-')
+	parser.add_argument('--fsize', type=int, help='Manually specify the font size of the glyphs for PNG export')
 	args = parser.parse_args()
 
 	saved_colors = SavedColors().maps
@@ -130,7 +130,7 @@ if __name__ == "__main__":
 	# Shorten UUID if requested
 	if args.shorten_uuid:
 		# Remove dashes, take first N chars, prefix with U-
-		uuid_str = 'U-' + ''.join([c for c in uuid_full if c.isalnum()])[:args.shorten_uuid]
+		uuid_str = 'U-' + ''.join([c.upper() for c in uuid_full if c.isalnum()])[:args.shorten_uuid]
 	else:
 		uuid_str = uuid_full
 	arr = uuid_to_heightmap(uuid_full, rows=args.rows, cols=args.cols)
@@ -153,5 +153,8 @@ if __name__ == "__main__":
 	if args.out:
 		# Pass font_path and font_size from glyphtable to export_png
 		export_png.font_path = font_path
-		export_png.font_size = font_size
+		if args.fsize:
+			export_png.font_size = args.fsize
+		else:
+			export_png.font_size = font_size
 		export_png(arr, glyphs, color_list, uuid_str, glyph_color_map, args.out)
