@@ -210,3 +210,63 @@ if __name__ == "__main__":
     if args.out:
         font_size = args.fsize if args.fsize else default_font_size
         export_png(arr_glyphs, font_path, font_size, color_list, uuid_str, glyph_color_map, args.out)
+
+def generate_glyph_png(
+    glyphtable,
+    cmap,
+    seed=None,
+    rows=3,
+    cols=8,
+    uuid=None,
+    shorten_uuid=None,
+    fsize=None,
+    glyph_values=None,
+    color_values=None,
+    out_path=None
+):
+    """
+    Generate a PNG image using the same logic as CLI, for Discord bot integration.
+    Returns the path to the generated PNG file.
+    """
+    saved_colors = SavedColors().maps
+    saved_glyphs = SavedGlyphs().maps
+
+    # Glyphtable selection
+    if glyphtable and glyphtable in saved_glyphs:
+        glyph_name = glyphtable
+    else:
+        glyph_name = list(saved_glyphs.keys())[0]
+    glyphs, font_path, default_font_size = saved_glyphs[glyph_name]
+
+    # Colormap selection
+    if cmap and cmap in saved_colors:
+        color_name = cmap
+    else:
+        color_name = list(saved_colors.keys())[0]
+    color_list = saved_colors[color_name]
+
+    # UUID handling
+    if uuid:
+        uuid_full = uuid
+    else:
+        uuid_full = str(uuid.uuid4())
+    if shorten_uuid:
+        uuid_str = 'U-' + ''.join([c.upper() for c in uuid_full if c.isalnum()])[:shorten_uuid]
+    else:
+        uuid_str = uuid_full
+
+    # Build heightmap and glyph grid
+    arr = uuid_to_heightmap(uuid_full, rows=rows, cols=cols)
+    arr_glyphs = build_glyph_grid(arr, glyphs, glyph_values=glyph_values)
+
+    # Assign colors to glyphs
+    glyph_color_map = assign_glyph_colors(glyphs, color_list, color_values=color_values, seed=seed)
+
+    # Font size
+    font_size = fsize if fsize else default_font_size
+
+    # Output path
+    if not out_path:
+        out_path = f"/tmp/glyph_{uuid_str}.png"
+    export_png(arr_glyphs, font_path, font_size, color_list, uuid_str, glyph_color_map, out_path)
+    return out_path

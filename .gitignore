@@ -2,3 +2,4 @@ venv/
 output/
 *__pycache__/
 .token
+start_bot.sh
