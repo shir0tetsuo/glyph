@@ -215,7 +215,7 @@ def generate_glyph_png(
     glyphtable,
     cmap,
     seed=None,
-    rows=3,
+    rows=2,
     cols=8,
     passed_uuid=None,
     shorten_uuid=None,
