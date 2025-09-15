@@ -113,14 +113,12 @@ class PaginatedStringSelect(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         view: AddressView = self.view  # type: ignore
-        # Value name corresponds to the item label/value
         chosen = self.values[0]
         if self.name == "glyphtable":
             view.glyphtable = chosen
         elif self.name == "color":
             view.color = chosen
         else:
-            # generic storage by name
             setattr(view, self.name, chosen)
         await view.maybe_generate(interaction)
 
@@ -137,25 +135,21 @@ class PageButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         view: AddressView = self.view  # type: ignore
-        # find the select instance for target in the view
         select_obj = None
         for item in view.children:
             if isinstance(item, PaginatedStringSelect) and item.name == self.target:
                 select_obj = item
                 break
         if select_obj is None:
-            # nothing to page
             try:
                 await interaction.response.send_message("Nothing to page.", ephemeral=True)
             except Exception:
                 pass
             return
 
-        # compute new page and clamp
         total_pages = max(1, (len(select_obj.all_items) - 1) // PAGE_SIZE + 1)
         new_page = max(0, min(total_pages - 1, select_obj.page + self.delta))
         if new_page == select_obj.page:
-            # nothing changed
             try:
                 await interaction.response.defer(ephemeral=True, thinking=False)
             except Exception:
@@ -165,11 +159,9 @@ class PageButton(discord.ui.Button):
         select_obj.page = new_page
         select_obj.rebuild()
 
-        # Because we changed the Select options, we need to edit the message to update the view.
         try:
             await interaction.response.edit_message(view=view)
         except Exception:
-            # fallback: try followup if message already responded differently
             try:
                 await interaction.followup.send("Updated page.", ephemeral=True)
             except Exception:
@@ -187,9 +179,8 @@ class AddressView(discord.ui.View):
         # Add glyphtable select + paging buttons (if any items)
         if GLYPH_ALL:
             gly_select = PaginatedStringSelect("glyphtable", GLYPH_ALL, page=0)
-            self.add_item(gly_select)                       # occupies row 0
-            # add Prev/Next buttons on a new row
-            self.add_item(PageButton("Prev Glyphs", target="glyphtable", delta=-1))  # row auto
+            self.add_item(gly_select)
+            self.add_item(PageButton("Prev Glyphs", target="glyphtable", delta=-1))
             self.add_item(PageButton("Next Glyphs", target="glyphtable", delta=+1))
         else:
             log.warning("No glyphtable options available; ./glyphtables is empty or fallback empty.")
@@ -203,9 +194,6 @@ class AddressView(discord.ui.View):
         else:
             log.warning("No color options available; ./colors is empty or fallback empty.")
 
-        # NOTE: We deliberately leave room for these items. The UI will arrange rows automatically.
-        # If you have a *huge* number of lists or custom controls, be mindful that Discord allows up to 5 rows.
-
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         is_allowed = interaction.user.id == self.author.id
         if not is_allowed:
@@ -216,7 +204,6 @@ class AddressView(discord.ui.View):
         return is_allowed
 
     async def maybe_generate(self, interaction: discord.Interaction) -> None:
-        # If both selects exist, require both chosen. If one of the categories is empty, allow generation once the other chosen.
         need_glyph = bool(GLYPH_ALL)
         need_color = bool(COLOR_ALL)
 
@@ -232,18 +219,20 @@ class AddressView(discord.ui.View):
         except Exception:
             pass
 
+        # Prepare generator kwargs, with defensive casting where appropriate
         gen_kwargs = {
             "glyphtable": self.glyphtable,
             "cmap": self.color,
             "seed": self.params.get("seed"),
-            "rows": self.params.get("rows"),
-            "cols": self.params.get("cols"),
-            "passed_uuid": self.params.get("uuid"),
-            "shorten_uuid": self.params.get("shorten_uuid"),
+            "rows": int(self.params.get("rows")) if self.params.get("rows") is not None else None,
+            "cols": int(self.params.get("cols")) if self.params.get("cols") is not None else None,
+            "passed_uuid": self.params.get("passed_uuid"),       # note: avoid 'uuid' name
+            "shorten_uuid": int(self.params.get("shorten_uuid")) if self.params.get("shorten_uuid") is not None else None,
             "fsize": self.params.get("fsize"),
             "glyph_values": self.params.get("glyph_values"),
             "color_values": self.params.get("color_values"),
         }
+
         # prune None values to avoid shadowing modules or passing accidental None
         gen_kwargs = {k: v for k, v in gen_kwargs.items() if v is not None}
 
@@ -294,7 +283,7 @@ async def address(interaction: discord.Interaction,
                   rows: Optional[int] = 3,
                   cols: Optional[int] = 8,
                   uuid: Optional[str] = None,
-                  shorten_uuid: Optional[bool] = None,
+                  shorten_uuid: Optional[int] = None,   # <-- changed to int per your note
                   fsize: Optional[int] = None,
                   glyph_values: Optional[str] = None,
                   color_values: Optional[str] = None):
@@ -311,11 +300,12 @@ async def address(interaction: discord.Interaction,
         )
         return
 
+    # Map the incoming 'uuid' param to 'passed_uuid' used by generator to avoid shadowing uuid module
     params = {
         "seed": seed,
         "rows": rows,
         "cols": cols,
-        "uuid": uuid,
+        "passed_uuid": uuid,
         "shorten_uuid": shorten_uuid,
         "fsize": fsize,
         "glyph_values": glyph_values,
