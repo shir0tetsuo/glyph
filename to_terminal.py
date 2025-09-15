@@ -5,10 +5,10 @@ import numpy as np
 import os
 from Components.loaders import SavedColors, SavedGlyphs
 
-def uuid_to_heightmap(uuid_str):
+def uuid_to_heightmap(uuid_str, rows=3, cols=8):
+	import random
 	parts = str(uuid_str).split('-')
-	# Use middle three and last part for more chars: 4+4+4+12 = 24
-	chars = ''.join(parts[1:])  # 4,4,4,12 = 24 chars
+	chars = ''.join(parts[1:])
 	vals = []
 	for c in chars:
 		if c.isdigit():
@@ -16,8 +16,15 @@ def uuid_to_heightmap(uuid_str):
 		else:
 			v = ord(c.upper()) - ord('A') + 10
 			vals.append(v - 7 if v >= 10 else v)
-	vals = (vals + [0]*24)[:24]
-	arr = np.array(vals).reshape((3,8))  # 3 rows, 8 columns
+	total = rows * cols
+	# If not enough values, fill with random 0-9
+	if len(vals) < total:
+		# Use a seed based on uuid for reproducibility
+		seed_val = sum([ord(x) for x in str(uuid_str)])
+		random.seed(seed_val)
+		vals += [random.randint(0,9) for _ in range(total - len(vals))]
+	vals = vals[:total]
+	arr = np.array(vals).reshape((rows, cols))
 	return arr
 
 def ansi_color(rgb):
@@ -50,6 +57,8 @@ if __name__ == "__main__":
 	parser.add_argument('--glyphtable', type=str, help='Name of glyphtable to use')
 	parser.add_argument('--cmap', type=str, help='Name of colormap to use')
 	parser.add_argument('--seed', type=int, help='Seed for random color assignment')
+	parser.add_argument('--rows', type=int, default=3, help='Number of rows in the grid (default: 3)')
+	parser.add_argument('--cols', type=int, default=8, help='Number of columns in the grid (default: 8)')
 	args = parser.parse_args()
 
 	saved_colors = SavedColors().maps
@@ -71,7 +80,7 @@ if __name__ == "__main__":
 
 	import random
 	uuid_str = str(uuid.uuid4())
-	arr = uuid_to_heightmap(uuid_str)
+	arr = uuid_to_heightmap(uuid_str, rows=args.rows, cols=args.cols)
 	# Assign a random color to each glyph for this run, using seed if provided
 	glyph_color_map = {}
 	available_colors = color_list.copy()
