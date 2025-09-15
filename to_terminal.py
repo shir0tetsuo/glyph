@@ -217,7 +217,7 @@ def generate_glyph_png(
     seed=None,
     rows=3,
     cols=8,
-    uuid=None,
+    passed_uuid=None,
     shorten_uuid=None,
     fsize=None,
     glyph_values=None,
@@ -246,8 +246,8 @@ def generate_glyph_png(
     color_list = saved_colors[color_name]
 
     # UUID handling
-    if uuid:
-        uuid_full = uuid
+    if passed_uuid:
+        uuid_full = passed_uuid
     else:
         uuid_full = str(uuid.uuid4())
     if shorten_uuid:
