@@ -260,9 +260,8 @@ class AddressView(discord.ui.View):
                 pass
             return
 
-        try:
-            await interaction.followup.send(content=f"Generated with glyphtable `{self.glyphtable}` and color `{self.color}`.")
-            await interaction.followup.send(file=discord.File(out_path, filename=os.path.basename(out_path)))
+        try: #.\n||`{gen_kwargs}`||
+            await interaction.followup.send(content=f"Generated with glyphtable `{self.glyphtable}` and color `{self.color}`", file=discord.File(out_path, filename=os.path.basename(out_path)))
         except Exception as exc:
             log.exception("Failed to send followup")
             try:
