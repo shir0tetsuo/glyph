@@ -73,3 +73,20 @@ It should be fairly straight forward (with typical Python 3.12.3 installations) 
 ## Web Application
 
 Intended to be intuitive, but broken apart to be used in other applications.
+
+# Address Bot
+
+Included is `discord_server.py` (Linux), 
+if you set the `DISCORD_BOT_TOKEN` in your env, you can
+run the bot over Discord.
+
+## Terms of Use
+
+- Don't spam the bot or try to break it.
+- Credit where due.
+
+## Actual Usage
+
+Without getting beyond the scope of this text, you can
+use it for art or to generate unique "Addresses"
+for "Psychic Links".
