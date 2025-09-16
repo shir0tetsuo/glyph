@@ -6,6 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 from typing import List, Optional, Sequence
+import uuid
 
 import discord
 from discord import app_commands
@@ -261,6 +262,7 @@ class AddressView(discord.ui.View):
             return
 
         try: #.\n||`{gen_kwargs}`||
+            print(gen_kwargs)
             await interaction.followup.send(content=f"Generated with glyphtable `{self.glyphtable}` and color `{self.color}`", file=discord.File(out_path, filename=os.path.basename(out_path)))
         except Exception as exc:
             log.exception("Failed to send followup")
@@ -277,6 +279,20 @@ class AddressView(discord.ui.View):
             self.stop()
 
 # ---------- Slash command (application command) ----------
+@TREE.command(name="uuid", description="Generate a random UUID")
+async def uuid_command(interaction: discord.Interaction):
+    random_uuid = str(uuid.uuid4())
+    try:
+        await interaction.response.send_message(f"`{random_uuid}`", ephemeral=True)
+    except Exception:
+        log.exception("Failed to send UUID message")
+        try:
+            await interaction.response.send_message("Failed to generate UUID; see bot logs.", ephemeral=True)
+        except Exception:
+            pass
+
+
+
 @TREE.command(name="address", description="Open the glyph generation UI")
 @app_commands.describe(
     seed="Optional seed string for deterministic generation",

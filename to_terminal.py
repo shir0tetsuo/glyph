@@ -89,7 +89,7 @@ def assign_glyph_colors(glyphs, color_list, color_values=None, seed=None):
                 glyph_color_map[glyph] = available_colors[idx]
             else:
                 if seed is not None:
-                    random.seed(seed + i)
+                    random.seed(seed + str(i))
                 random.shuffle(available_colors)
                 glyph_color_map[glyph] = available_colors[i % len(available_colors)]
     else:
