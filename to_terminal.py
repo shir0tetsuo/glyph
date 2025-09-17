@@ -189,7 +189,7 @@ if __name__ == "__main__":
     else:
         uuid_full = str(uuid.uuid4())
     if args.shorten_uuid:
-        uuid_str = 'U-' + ''.join([c.upper() for c in uuid_full if c.isalnum()])[:args.shorten_uuid]
+        uuid_str = 'PTR-' + ''.join([c.upper() for c in uuid_full if c.isalnum()])[:args.shorten_uuid]
     else:
         uuid_str = uuid_full
 
@@ -251,7 +251,7 @@ def generate_glyph_png(
     else:
         uuid_full = str(uuid.uuid4())
     if shorten_uuid:
-        uuid_str = 'U-' + ''.join([c.upper() for c in uuid_full if c.isalnum()])[:shorten_uuid]
+        uuid_str = 'PTR-' + ''.join([c.upper() for c in uuid_full if c.isalnum()])[:shorten_uuid]
     else:
         uuid_str = uuid_full
 
